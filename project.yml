@@ -1,0 +1,20 @@
+name: Inovita
+options:
+  bundleIdPrefix: com.inovita
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  Inovita:
+    type: application
+    platform: iOS
+    sources: [Inovita]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.inovita.app
+        MARKETING_VERSION: 1.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Inovita
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Inovita uses Bluetooth to connect your medical chip and smart devices."
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
