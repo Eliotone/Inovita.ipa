@@ -16,5 +16,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Inovitec
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Inovitec uses Bluetooth to connect your medical chip and smart devices."
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Inovitec uses your location to show your position on the map."
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
