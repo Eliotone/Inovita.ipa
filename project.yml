@@ -1,6 +1,6 @@
 name: Inovitec
 options:
-  bundleIdPrefix: com.inovitec
+  bundleIdPrefix: com.inovitec.app
   deploymentTarget:
     iOS: "16.0"
 targets:
