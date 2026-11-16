@@ -1,57 +1,134 @@
 import SwiftUI
+import MapKit
+import CoreLocation
 
-@main
-struct InovitecApp: App {
-    var body: some Scene {
-        WindowGroup {
-            RootView()
+final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    @Published var location: CLLocation?
+    @Published var status: CLAuthorizationStatus = .notDetermined
+    private let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 5
+        status = manager.authorizationStatus
+    }
+
+    func start() {
+        if manager.authorizationStatus == .notDetermined {
+            manager.requestWhenInUseAuthorization()
+        }
+        manager.startUpdatingLocation()
+    }
+
+    func stop() { manager.stopUpdatingLocation() }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        status = manager.authorizationStatus
+        if status == .authorizedWhenInUse || status == .authorizedAlways {
+            manager.startUpdatingLocation()
         }
     }
-}
 
-extension Color {
-    init(light: Color, dark: Color) {
-        self = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
-    }
-    init(hex: UInt32) {
-        self.init(red: Double((hex >> 16) & 0xFF) / 255,
-                  green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255)
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        location = locations.last
     }
 }
 
-enum Theme {
-    static let sage       = Color(hex: 0x8fb79d)
-    static let sageSoft   = Color(hex: 0xc5dccb)
-    static let forest     = Color(hex: 0x1b6e3f)
-    static let forestDark = Color(hex: 0x14502e)
-    static let page       = Color(hex: 0xdedede)
-    static let ink        = Color(hex: 0x111111)
-    static let cyan       = Color(hex: 0xc9f1fb)
-    static let cyanInk    = Color(hex: 0x0b3d8f)
-    static let rose       = Color(hex: 0xfdd2d2)
-    static let roseBar    = Color(hex: 0xf48b8b)
-    static let lilac      = Color(hex: 0xdadcf6)
-    static let lime       = Color(hex: 0xc9f56b)
-    static let sun        = Color(hex: 0xfbd85d)
+struct LocationView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var lm = LocationManager()
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 49.6116, longitude: 6.1319),
+        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
+    @State private var tracking: MapUserTrackingMode = .follow
+    @State private var showSOS = false
 
-    static let background = Color(light: page, dark: Color(hex: 0x101416))
-    static let accent     = Color(light: forest, dark: sage)
-    static let titleInk   = Color(light: cyanInk, dark: Color(hex: 0x9cc2ff))
+    private var denied: Bool { lm.status == .denied || lm.status == .restricted }
 
-    static func flat(_ light: Color, _ dark: Color) -> LinearGradient {
-        let c = Color(light: light, dark: dark)
-        return LinearGradient(colors: [c, c], startPoint: .top, endPoint: .bottom)
+    var body: some View {
+        ZStack(alignment: .top) {
+            Map(coordinateRegion: $region, showsUserLocation: true, userTrackingMode: $tracking)
+                .ignoresSafeArea()
+
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(Theme.headerGradient, in: Circle())
+                }
+                Spacer()
+                Text("Localisation")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 18).padding(.vertical, 10)
+                    .background(Theme.headerGradient, in: Capsule())
+                Spacer()
+                Button { tracking = .follow } label: {
+                    Image(systemName: "location.fill")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(Theme.headerGradient, in: Circle())
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            VStack(spacing: 12) {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button { showSOS = true } label: {
+                        Label("Appeler les secours", systemImage: "phone.fill")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 18).padding(.vertical, 14)
+                            .background(Color(red: 0.85, green: 0.10, blue: 0.15), in: Capsule())
+                            .shadow(color: .black.opacity(0.3), radius: 6, y: 3)
+                    }
+                }
+                infoCard
+            }
+            .padding(16)
+        }
+        .fullScreenCover(isPresented: $showSOS) { EmergencyCallView() }
+        .onAppear { lm.start() }
+        .onDisappear { lm.stop() }
     }
 
-    static let headerGradient   = flat(sage, Color(hex: 0x2b4a38))
-    static let barGradient      = LinearGradient(
-        colors: [Color(light: forest, dark: Color(hex: 0x1e4d33)),
-                 Color(light: forestDark, dark: Color(hex: 0x163a26))],
-        startPoint: .top, endPoint: .bottom)
-    static let mineralsGradient = flat(cyan, Color(hex: 0x16414d))
-    static let drinkGradient    = flat(rose, Color(hex: 0x4d2a2c))
-    static let heatGradient     = flat(lilac, Color(hex: 0x2c2e55))
-    static let limeGradient     = flat(lime, Color(hex: 0x3d4d1a))
-    static let sunGradient      = flat(sun, Color(hex: 0x5a4a10))
+    @ViewBuilder
+    private var infoCard: some View {
+        VStack(spacing: 6) {
+            if denied {
+                Label("Accès à la position refusé", systemImage: "location.slash.fill")
+                    .font(.headline)
+                Button("Ouvrir les réglages") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.accent)
+            } else if let loc = lm.location {
+                Label("Position en temps réel", systemImage: "location.circle.fill")
+                    .font(.headline).foregroundStyle(Theme.accent)
+                Text(String(format: "%.5f, %.5f", loc.coordinate.latitude, loc.coordinate.longitude))
+                    .font(.subheadline.monospacedDigit())
+                Text(String(format: "Précision : ±%.0f m", loc.horizontalAccuracy))
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Recherche de votre position…").font(.subheadline)
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+    }
 }
