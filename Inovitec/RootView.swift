@@ -1,5 +1,14 @@
 import SwiftUI
 
+enum AppInfo {
+    static var versionText: String {
+        let info = Bundle.main.infoDictionary
+        let v = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let b = info?["CFBundleVersion"] as? String ?? "?"
+        return "Version \(v) (build \(b))"
+    }
+}
+
 struct RootView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showPanel = false
@@ -159,6 +168,10 @@ struct HomeView: View {
             Text("Votre santé est notre priorité")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            Text(AppInfo.versionText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.top, 6)
         }
     }
 
