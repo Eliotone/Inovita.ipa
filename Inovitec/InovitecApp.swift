@@ -21,7 +21,6 @@ extension Color {
 }
 
 enum Theme {
-    // Palette
     static let sage       = Color(hex: 0x8fb79d)
     static let sageSoft   = Color(hex: 0xc5dccb)
     static let forest     = Color(hex: 0x1b6e3f)
@@ -36,7 +35,6 @@ enum Theme {
     static let lime       = Color(hex: 0xc9f56b)
     static let sun        = Color(hex: 0xfbd85d)
 
-    // Adaptive (light / dark)
     static let background = Color(light: page, dark: Color(hex: 0x101416))
     static let accent     = Color(light: forest, dark: sage)
     static let titleInk   = Color(light: cyanInk, dark: Color(hex: 0x9cc2ff))
@@ -54,4 +52,6 @@ enum Theme {
     static let mineralsGradient = flat(cyan, Color(hex: 0x16414d))
     static let drinkGradient    = flat(rose, Color(hex: 0x4d2a2c))
     static let heatGradient     = flat(lilac, Color(hex: 0x2c2e55))
+    static let limeGradient     = flat(lime, Color(hex: 0x3d4d1a))
+    static let sunGradient      = flat(sun, Color(hex: 0x5a4a10))
 }
