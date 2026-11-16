@@ -43,6 +43,8 @@ struct HomeView: View {
     @State private var showDrink = false
     @State private var showHeating = false
     @State private var showProfile = false
+    @State private var showInjury = false
+    @State private var showBook = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,7 +53,8 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     topCards
-                    Spacer(minLength: 50)
+                    shortcuts
+                    Spacer(minLength: 40)
                     centerMessage
                     Spacer(minLength: 24)
                 }
@@ -66,6 +69,8 @@ struct HomeView: View {
         .sheet(isPresented: $showDrink) { PlaceholderDetail(title: "Hydratation") }
         .sheet(isPresented: $showHeating) { PlaceholderDetail(title: "Mode Chauffage") }
         .sheet(isPresented: $showProfile) { PlaceholderDetail(title: "Profil utilisateur") }
+        .sheet(isPresented: $showInjury) { InjuryDurationView() }
+        .sheet(isPresented: $showBook) { BookView() }
     }
 
     private var header: some View {
@@ -116,6 +121,21 @@ struct HomeView: View {
                              title: "Mode Chauffage", value: "21°C", progress: nil, progressColor: .clear)
                 }.buttonStyle(CardButtonStyle())
             }
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private var shortcuts: some View {
+        HStack(spacing: 14) {
+            Button { showInjury = true } label: {
+                ShortcutCard(icon: "cross.case.fill", iconColor: Theme.roseBar, gradient: Theme.sunGradient,
+                             title: "Durée de blessure", subtitle: "Temps de guérison")
+            }.buttonStyle(CardButtonStyle())
+
+            Button { showBook = true } label: {
+                ShortcutCard(icon: "book.fill", iconColor: Theme.forest, gradient: Theme.limeGradient,
+                             title: "Livre", subtitle: "Ouvrir la page")
+            }.buttonStyle(CardButtonStyle())
         }
         .padding(.horizontal, 16)
     }
@@ -204,7 +224,6 @@ struct MineralBar: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // Name ABOVE the slider
             Text(name)
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(.primary)
@@ -288,7 +307,6 @@ struct SidePanelView: View {
             .padding(.bottom, 20)
             .background(Theme.headerGradient)
 
-            // Dark / light switch
             HStack(spacing: 14) {
                 Image(systemName: isDarkMode ? "moon.stars.fill" : "sun.max.fill")
                     .foregroundStyle(isDarkMode ? Color.indigo : Color.orange)
@@ -383,8 +401,6 @@ struct PlaceholderDetail: View {
         .presentationDetents([.medium])
     }
 }
-
-// MARK: - Rounded corner helper
 
 struct RoundedCorner: Shape {
     var radius: CGFloat = 20
