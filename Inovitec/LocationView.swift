@@ -43,6 +43,7 @@ struct LocationView: View {
         center: CLLocationCoordinate2D(latitude: 49.6116, longitude: 6.1319),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
     @State private var tracking: MapUserTrackingMode = .follow
+    @State private var showSOS = false
 
     private var denied: Bool { lm.status == .denied || lm.status == .restricted }
 
@@ -51,7 +52,6 @@ struct LocationView: View {
             Map(coordinateRegion: $region, showsUserLocation: true, userTrackingMode: $tracking)
                 .ignoresSafeArea()
 
-            // Top bar
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
@@ -78,12 +78,24 @@ struct LocationView: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
 
-            VStack {
+            VStack(spacing: 12) {
                 Spacer()
+                HStack {
+                    Spacer()
+                    Button { showSOS = true } label: {
+                        Label("Appeler les secours", systemImage: "phone.fill")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 18).padding(.vertical, 14)
+                            .background(Color(red: 0.85, green: 0.10, blue: 0.15), in: Capsule())
+                            .shadow(color: .black.opacity(0.3), radius: 6, y: 3)
+                    }
+                }
                 infoCard
             }
             .padding(16)
         }
+        .fullScreenCover(isPresented: $showSOS) { EmergencyCallView() }
         .onAppear { lm.start() }
         .onDisappear { lm.stop() }
     }
